@@ -27,14 +27,14 @@ namespace OtonaBookApi.Areas.Actress
         [HttpPost("get-actress-list")]
         public async Task<ResponseResult<List<ActressResponse>>> GetActressList()
         {
-            var list = await _dbContext.Actresses.Select(a => new ActressResponse { Name = a.Name, Avatar = a.Avatar, Info = a.Info }).ToListAsync();
+            var list = await _dbContext.Actress.Select(a => new ActressResponse { Name = a.Name, Avatar = a.Avatar, Info = a.Info }).ToListAsync();
             return list;
         }
 
         [HttpPost("set-actress")]
         public async Task<ResponseResult<int>> SetActress([FromBody] SetActressRequest req)
         {
-            var new_actress = await _dbContext.Actresses.AddAsync(new TModel.Actress { Name = req.Name, Avatar = req.Avatar, Info = req.Info });
+            var new_actress = await _dbContext.Actress.AddAsync(new TModel.Actress { Name = req.Name, Avatar = req.Avatar, Info = req.Info });
             await _dbContext.SaveChangesAsync();
             return new_actress.Entity.Id;
         }
