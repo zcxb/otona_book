@@ -31,7 +31,9 @@ namespace OtonaBookApi.Middlewares
                 var response = new ResponseResult<object>
                 {
                     Code = ResponseResultCode.ERROR,
-                    Message = ResponseResultCode.ERROR.ToString()
+                    Message = ResponseResultCode.ERROR.ToString(),
+                    SubCode = "unknown_error",
+                    SubMessage = ex.Message,
                 };
                 if (ex is BizException bizEx)
                 {

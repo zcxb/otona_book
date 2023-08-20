@@ -38,13 +38,13 @@ public partial class Film
     /// 封面
     /// </summary>
     [Column("cover_images", TypeName = "jsonb")]
-    public JsonDocument? CoverImages { get; set; }
+    public JsonDocument CoverImages { get; set; } = null!;
 
     /// <summary>
     /// 样品图
     /// </summary>
     [Column("sample_images", TypeName = "jsonb")]
-    public JsonDocument? SampleImages { get; set; }
+    public JsonDocument SampleImages { get; set; } = null!;
 
     /// <summary>
     /// 发行时间

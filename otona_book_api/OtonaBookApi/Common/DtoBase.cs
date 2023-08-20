@@ -39,5 +39,14 @@ namespace OtonaBookApi.Common
             };
         }
     }
+
+    public class QueryByPageRequest
+    {
+        [JsonPropertyName("page_no")]
+        public int PageNo { get; set; } = 1;
+
+        [JsonPropertyName("page_size")]
+        public int PageSize { get; set; } = 30;
+    }
 }
 
