@@ -1,0 +1,20 @@
+{
+    "name": "otona_book_collector",
+    "version": "0.1.0",
+    "description": "everyday data collector",
+    "main": "main.js",
+    "author": "zcxb",
+    "scripts": {
+        "dev":"node main.js"
+    },
+    "dependencies": {
+        "axios": "^0.21.1",
+        "dayjs": "^1.11.9",
+        "fs-extra": "^11.1.1",
+        "lodash": "^4.17.21",
+        "puppeteer": "^21.1.0",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-recaptcha": "^3.6.8",
+        "puppeteer-extra-plugin-stealth": "^2.11.2"
+    }
+}
