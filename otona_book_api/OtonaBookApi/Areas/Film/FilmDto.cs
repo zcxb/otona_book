@@ -29,14 +29,36 @@ namespace OtonaBookApi.Areas.Film
 
     public class QueryFilmListResponse
     {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
         [JsonPropertyName("bango")]
         public string Bango { get; set; } = null!;
 
         [JsonPropertyName("title")]
         public string Title { get; set; } = null!;
 
+        [JsonPropertyName("published_at")]
+        public DateTime? PublishedAt { get; set; }
+
         [JsonPropertyName("cover_images")]
         public JsonDocument CoverImages { get; set; } = null!;
+    }
+
+    public class SaveFilmItemRequest
+    {
+        public string Title { get; set; }
+
+        public string Bango { get; set; }
+
+        public string PublishedAt { get; set; }
+
+        public string[] Tags { get; set; }
+
+        public string[] Actress { get; set; }
+
+        public string[] CoverImages { get; set; }
+
     }
 }
 
