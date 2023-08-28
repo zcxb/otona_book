@@ -33,11 +33,11 @@ class Avmoo {
   static async collect_page(browser, page, page_no) {
     const last_date = '2023-08-19';
 
-    let url = `${baseUrl}/cn/released`;
+    let released_url = `${baseUrl}/cn/released`;
     if (page_no !== 1) {
-      url += `/page/${page_no}`;
+      released_url += `/page/${page_no}`;
     }
-    await page.goto(url, {
+    await page.goto(released_url, {
       waitUntil: 'networkidle2',
       timeout: 60000,
     });
@@ -74,31 +74,35 @@ class Avmoo {
         }
 
         const detail_page = await createPage(browser);
-        const item_detail = await Avmoo.collect_item(detail_page, { item_href, referer: url });
+        const item_detail = await Avmoo.collect_item(detail_page, { url: item_href, referer: released_url });
         if (detail_page) {
           await detail_page.close();
           detail_page = null;
         }
+        await Avmoo.save_item({ item_detail });
       } catch (error) {}
-
-      console.log('yes, we upload this item!');
-      //   await Avmoo.save_item(item);
     }
 
     return true;
   }
 
-  static async collect_item(page, { item_href, referer }) {
-    if (!item_href) {
+  static async collect_item(page, { url, referer }) {
+    if (!url) {
       return null;
     }
 
     try {
-      await page.goto(item_href, {
+      await page.goto(url, {
         timeout: 60000,
         referer,
       });
     } catch (error) {}
+  }
+
+  static async save_item(item) {
+    const { item_detail } = item;
+
+    console.log('yes, we upload this item!');
   }
 }
 
