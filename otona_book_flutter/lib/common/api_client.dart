@@ -14,7 +14,7 @@ class ApiClient {
   BuildContext? context;
   late Options _options;
   static Dio dio = Dio(BaseOptions(
-      baseUrl: "https://localhost:7129",
+      baseUrl: "http://localhost:7129",
       headers: {HttpHeaders.acceptHeader: "application/json"}));
 
   Future<dynamic> post(String route, Object? data) async {

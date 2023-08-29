@@ -25,12 +25,13 @@ class _FilmItemState extends State<FilmItem> {
   Widget build(BuildContext context) {
     var bangoText = widget.film.bango;
     Random r = Random();
-    final index = r.nextInt(2);
+    final index = r.nextInt(covers.length);
 
     var cover_image = covers[index];
     if (widget.film.cover_images != null &&
         widget.film.cover_images!.isNotEmpty) {
       cover_image = widget.film.cover_images![0];
+      cover_image = "http://localhost:9000/otona-book$cover_image";
     }
     if (widget.film.published_at != null) {
       // print(dateFormatter.format(widget.film.published_at!));
@@ -50,7 +51,9 @@ class _FilmItemState extends State<FilmItem> {
               Container(
                 // color: Colors.grey,
                 padding: const EdgeInsets.symmetric(horizontal: .5),
-                child: CachedNetworkImage(imageUrl: cover_image),
+                child: CachedNetworkImage(
+                  imageUrl: cover_image,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
