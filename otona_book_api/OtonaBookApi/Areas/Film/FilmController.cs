@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqKit;
@@ -24,32 +25,43 @@ namespace OtonaBookApi.Areas.Film
         [HttpPost("save-film-item")]
         public async Task<ResponseResult<object>> SaveFilmItem([FromBody] SaveFilmItemRequest req)
         {
-            throw new NotImplementedException();
-            //using var transaction = DbContext.Database.BeginTransaction();
-            //try
-            //{
-            //    var film = await DbContext.Film.Where(f => f.Bango == req.Bango).Select(f => new { Id = f.Id }).FirstOrDefaultAsync();
-            //    if (film != null)
-            //    {
-            //        throw new BizException("film.already_exist", "影片已经存在");
-            //    }
+            using var transaction = DbContext.Database.BeginTransaction();
+            try
+            {
+                var film = await DbContext.Film.Where(f => f.Bango == req.Bango).Select(f => new { Id = f.Id }).FirstOrDefaultAsync();
+                if (film != null)
+                {
+                    throw new BizException("film.already_exist", "影片已经存在");
+                }
 
-            //    var new_film = new Models.Film
-            //    {
-            //        Bango = req.Bango,
-            //        PublishedAt = req.PublishedAt,
-            //        Title = req.Title,
-            //    };
-            //    var new_film_entity = DbContext.Film.Add(new_film).Entity;
+                var new_film = new Models.Film
+                {
+                    Bango = req.Bango,
+                    PublishedAt = DateTime.ParseExact(req.PublishedAt, "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    Title = req.Title,
+                    CoverImages = req.CoverImages,
+                    SampleImages = req.SampleImages,
+                };
+                var new_film_entity = DbContext.Film.Add(new_film).Entity;
+                DbContext.SaveChanges();
 
-            //    DbContext.FilmActress.AddRange();
+                var filmActress = new List<Models.FilmActress>();
+                foreach (var actress in req.Actress)
+                {
+                    filmActress.Add(new Models.FilmActress { FilmId = new_film.Id, ActressId = 12 });
+                }
+                DbContext.FilmActress.AddRange(filmActress);
+                DbContext.SaveChanges();
 
-            //    await transaction.CommitAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    await transaction.RollbackAsync();
-            //}
+                await transaction.CommitAsync();
+                return new_film.Id;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         [HttpPost("query-list")]
