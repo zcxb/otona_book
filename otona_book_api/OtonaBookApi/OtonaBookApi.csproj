@@ -6,7 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(RunConfiguration)' == 'https' " />
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'http' " />
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
@@ -18,7 +17,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.0" />
     <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="7.1.4" />
-    <PackageReference Include="FluentFTP" Version="47.1.0" />
+    <PackageReference Include="Minio" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
