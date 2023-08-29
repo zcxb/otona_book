@@ -31,7 +31,7 @@ const createBrowser = async () => {
     args.push(`--proxy-server=${proxy_server}`);
   }
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: "new",
     args,
     ignoreDefaultArgs: ['--enable-automation'],
     ignoreHTTPSErrors: true,

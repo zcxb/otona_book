@@ -1,54 +1,59 @@
 const { createPage } = require('../../utils/browser');
 const dayjs = require('dayjs');
 const axios = require('axios');
-const https = require('https');
+const http = require('http');
 // const { uploadBuffer } = require('../../utils/api');
 const FormData = require('form-data');
 var parseUrl = require('url').parse;
-const agent = new https.Agent({ rejectUnauthorized: false });
+const agent = new http.Agent({ rejectUnauthorized: false });
+const otona_api_client = require('./api-client');
 
 const uploadBuffer = (url, data, options) => {
-  return new Promise((resolve, reject) => {
-    let formData = new FormData({
-      httpsAgent: agent,
-    });
-    if (data) {
-      for (const key in data) {
-        const value = data[key];
-        if (typeof value === 'object' && Buffer.isBuffer(value)) {
-          formData.append(key, value, { knownLength: value.length, filename: key });
-          continue;
+  try {
+    return new Promise((resolve, reject) => {
+      let formData = new FormData({
+        httpsAgent: agent,
+      });
+      if (data) {
+        for (const key in data) {
+          const value = data[key];
+          if (typeof value === 'object' && Buffer.isBuffer(value)) {
+            formData.append(key, value, { knownLength: value.length, filename: key });
+            continue;
+          }
+          formData.append(key, value);
         }
-        formData.append(key, value);
-      }
-    }
-
-    const params = parseUrl(url);
-    params.headers = {
-      'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
-    };
-    params.agent = agent;
-    formData.submit(params, function (err, response) {
-      if (err) {
-        throw err;
       }
 
-      response.resume();
-
-      let rawData = '';
-      response.on('data', (chunk) => {
-        rawData += chunk;
-      });
-      response.on('end', () => {
-        try {
-          const parsedData = JSON.parse(rawData);
-          resolve(parsedData);
-        } catch (e) {
-          reject(e);
+      const params = parseUrl(url);
+      params.headers = {
+        'Content-Type': `multipart/form-data; boundary=${formData.getBoundary()}`,
+      };
+      params.agent = agent;
+      formData.submit(params, function (err, response) {
+        if (err) {
+          reject(err);
         }
+
+        response.resume();
+
+        let rawData = '';
+        response.on('data', (chunk) => {
+          rawData += chunk;
+        });
+        response.on('end', () => {
+          try {
+            const parsedData = JSON.parse(rawData);
+            resolve(parsedData);
+          } catch (e) {
+            reject(e);
+          }
+        });
       });
     });
-  });
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const baseUrl = 'https://avmoo.cfd';
@@ -87,6 +92,20 @@ class Avmoo {
     if (page_no !== 1) {
       released_url += `/page/${page_no}`;
     }
+
+    let cover_imgs = new Map();
+    if (!page.listenerCount('response')) {
+      await page.on('response', async (response) => {
+        const url = response.url();
+        if (url.includes('/digital/video')) {
+          const url_segments = url.split('/');
+          const image_name = url_segments[url_segments.length - 1];
+          const film_id = url_segments[url_segments.length - 2];
+          const image_buf = await response.buffer();
+          cover_imgs.set(film_id, { image_name, image_buf });
+        }
+      });
+    }
     await page.goto(released_url, {
       waitUntil: 'networkidle2',
       timeout: 60000,
@@ -116,27 +135,42 @@ class Avmoo {
       console.log(title);
       console.log(imgsrc);
 
+      let cover = null;
+      const imgsrc_splited = imgsrc.split('/');
+      const cover_key = imgsrc_splited[imgsrc_splited.length - 2];
+      if (cover_key) {
+        if (cover_imgs.has(cover_key)) {
+          cover = cover_imgs.get(cover_key);
+        }
+      }
+
       try {
         const [movie_box_href] = await page.$x(`//div[@class='item'][${index + 1}]//a[@class='movie-box']/@href`);
         let item_href = await page.evaluate((el) => el.value, movie_box_href);
         if (item_href.startsWith('//')) {
           item_href = 'http:' + item_href;
         }
+        console.log('item_href: ', item_href);
 
         const detail_page = await createPage(browser);
-        const item_detail = await Avmoo.collect_item(detail_page, { bango, url: item_href, referer: released_url });
+        const item_detail = await Avmoo.collect_item(detail_page, {
+          cover,
+          bango,
+          url: item_href,
+          referer: released_url,
+        });
+        await Avmoo.save_item({ ...item_detail, published_at, title });
         if (detail_page) {
           await detail_page.close();
           detail_page = null;
         }
-        await Avmoo.save_item({ item_detail });
       } catch (error) {}
     }
 
     return true;
   }
 
-  static async collect_item(page, { bango, url, referer }) {
+  static async collect_item(page, { cover, bango, url, referer }) {
     if (!url) {
       return null;
     }
@@ -152,6 +186,14 @@ class Avmoo {
       }
     });
 
+    const file_item = {
+      bango,
+      cover_images: [],
+      sample_images: [],
+      actress: ["test-a"],
+      tags: ['test'],
+    };
+
     try {
       await page.goto(url, {
         waitUntil: 'networkidle2',
@@ -159,35 +201,55 @@ class Avmoo {
         referer,
       });
 
+      if (cover) {
+        const { image_name, image_buf } = cover;
+        const img_path = `/films/img/${bango}/${image_name}`;
+
+        const { code, data, msg } = await uploadBuffer(Avmoo.concatUploadPath(img_path), { file: image_buf });
+        if (code) {
+          throw new Error(msg);
+        }
+        if (data) {
+          const { file_path } = data;
+          file_item.cover_images = [file_path];
+        }
+      }
+
       for (const sample_image of sample_images) {
         const { image_name, image_buf } = sample_image;
 
         try {
           const form = new FormData();
           form.append('file', image_buf, { knownLength: image_buf.length, filename: 'file' });
-          const img_path = `/films/img/${bango}/${image_name}`;
+          const img_path = `/films/img/${bango}/samples/${image_name}`;
 
-          const { code, data, msg } = await uploadBuffer(
-            `https://localhost:7129/common/upload-file?imgPath=${img_path}`,
-            {
-              file: image_buf,
-            }
-          );
-          if (!code) {
+          const { code, data, msg } = await uploadBuffer(Avmoo.concatUploadPath(img_path), { file: image_buf });
+          if (code) {
             throw new Error(msg);
           }
-          const { upload_path } = data;
+          if (data) {
+            const { file_path } = data;
+            file_item.sample_images.push(file_path);
+          }
           // TODO:
         } catch (error) {
           console.error(error);
         }
       }
     } catch (error) {}
+    return file_item;
+  }
+
+  static concatUploadPath(img_path) {
+    return `http://localhost:7129/common/upload-file?imgPath=${img_path}`;
   }
 
   static async save_item(item) {
-    const { item_detail } = item;
-
+    try {
+      const res = await otona_api_client.post('/film/save-film-item', item);
+    } catch (error) {
+      console.log(error);
+    }
     console.log('yes, we upload this item!');
   }
 }
