@@ -59,11 +59,18 @@ public partial class OtonaBookContext : DbContext
 
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.Bango).HasComment("番号");
-            entity.Property(e => e.CoverImages).HasComment("封面");
+            entity.Property(e => e.CoverImages)
+                .HasDefaultValueSql("'[]'::jsonb")
+                .HasComment("封面");
             entity.Property(e => e.PublishedAt).HasComment("发行时间");
             entity.Property(e => e.PublisherId).HasComment("发行商id");
-            entity.Property(e => e.SampleImages).HasComment("样品图");
+            entity.Property(e => e.SampleImages)
+                .HasDefaultValueSql("'[]'::jsonb")
+                .HasComment("样品图");
             entity.Property(e => e.SeriesId).HasComment("系列id");
+            entity.Property(e => e.Tags)
+                .HasDefaultValueSql("'[]'::jsonb")
+                .HasComment("标签");
             entity.Property(e => e.Title).HasComment("标题");
         });
 
@@ -93,6 +100,8 @@ public partial class OtonaBookContext : DbContext
             entity.Property(e => e.Id).UseIdentityAlwaysColumn();
             entity.Property(e => e.DeletedAt).HasComment("删除时间");
             entity.Property(e => e.Name).HasComment("tag名");
+            entity.Property(e => e.OutGenreId).HasComment("外部tagid");
+            entity.Property(e => e.ParentTagId).HasDefaultValueSql("0");
         });
 
         modelBuilder.Entity<Publisher>(entity =>

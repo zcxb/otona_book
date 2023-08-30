@@ -57,7 +57,7 @@ namespace OtonaBookApi.Areas.Film
         public string PublishedAt { get; set; }
 
         [JsonPropertyName("tags")]
-        public string[] Tags { get; set; }
+        public SaveFilmItemRequest_Tag[] Tags { get; set; }
 
         [JsonPropertyName("actress")]
         public string[] Actress { get; set; }
@@ -67,6 +67,15 @@ namespace OtonaBookApi.Areas.Film
 
         [JsonPropertyName("sample_images")]
         public JsonDocument SampleImages { get; set; }
+    }
+
+    public class SaveFilmItemRequest_Tag
+    {
+        [JsonPropertyName("tag_uid")]
+        public string TagUid { get; set; }
+
+        [JsonPropertyName("tag_name")]
+        public string TagName { get; set; }
     }
 }
 

@@ -21,14 +21,18 @@ public partial class GenreTag
     public string Name { get; set; } = null!;
 
     [Column("parent_tag_id")]
-    public int ParentTagId { get; set; }
+    public int? ParentTagId { get; set; }
 
     [Column("tag_id_path")]
     [StringLength(1000)]
-    public string TagIdPath { get; set; } = null!;
+    public string? TagIdPath { get; set; }
 
-    [Column("genre_id")]
-    public int GenreId { get; set; }
+    /// <summary>
+    /// 外部tagid
+    /// </summary>
+    [Column("out_genre_id")]
+    [StringLength(32)]
+    public string? OutGenreId { get; set; }
 
     /// <summary>
     /// 删除时间

@@ -57,4 +57,10 @@ public partial class Film
     /// </summary>
     [Column("series_id")]
     public int? SeriesId { get; set; }
+
+    /// <summary>
+    /// 标签
+    /// </summary>
+    [Column("tags", TypeName = "jsonb")]
+    public JsonDocument Tags { get; set; } = null!;
 }
