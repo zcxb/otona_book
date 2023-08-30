@@ -186,12 +186,12 @@ class Avmoo {
       }
     });
 
-    const file_item = {
+    const film_item = {
       bango,
       cover_images: [],
       sample_images: [],
-      actress: ["test-a"],
-      tags: ['test'],
+      actress: [],
+      tags: [],
     };
 
     try {
@@ -211,8 +211,26 @@ class Avmoo {
         }
         if (data) {
           const { file_path } = data;
-          file_item.cover_images = [file_path];
+          film_item.cover_images = [file_path];
         }
+      }
+
+      const actress_name_spans = await page.$x(`//div[@id='avatar-waterfall']//span`);
+      for (const actress_name_span of actress_name_spans) {
+        const actress_name = await page.evaluate((el) => el.innerText, actress_name_span);
+        if (actress_name) {
+          film_item.actress.push(actress_name);
+        }
+      }
+
+      const tag_els = await page.$x(`//span[@class='genre']/a`);
+      for (let index = 0; index < tag_els.length; index++) {
+        const tag_name = await page.evaluate((el) => el.innerText, tag_els[index]);
+        const [tag_href_attr] = await page.$x(`//span[@class='genre'][${index + 1}]/a/@href`);
+        const tag_href = await page.evaluate((el) => el.value, tag_href_attr);
+        const tag_href_splited = tag_href.split('/');
+        const tag_uid = tag_href_splited[tag_href_splited.length - 1];
+        film_item.tags.push({ tag_name, tag_uid });
       }
 
       for (const sample_image of sample_images) {
@@ -229,7 +247,7 @@ class Avmoo {
           }
           if (data) {
             const { file_path } = data;
-            file_item.sample_images.push(file_path);
+            film_item.sample_images.push(file_path);
           }
           // TODO:
         } catch (error) {
@@ -237,7 +255,7 @@ class Avmoo {
         }
       }
     } catch (error) {}
-    return file_item;
+    return film_item;
   }
 
   static concatUploadPath(img_path) {

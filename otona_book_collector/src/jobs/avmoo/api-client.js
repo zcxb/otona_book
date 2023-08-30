@@ -7,9 +7,13 @@ const post = async (route, data, options) => {
   const { data: response_data } = response;
 
   if (response_data) {
-    const { code, data, msg } = response_data;
+    const { code, data, msg, sub_code, sub_msg } = response_data;
     if (code) {
-      throw new Error(msg);
+      let error_msg = msg;
+      if (sub_code && sub_msg) {
+        error_msg += ` ### [${sub_code}] ${sub_msg}`;
+      }
+      throw new Error(error_msg);
     }
 
     return data;
