@@ -97,7 +97,7 @@ class Avmoo {
     if (!page.listenerCount('response')) {
       await page.on('response', async (response) => {
         const url = response.url();
-        if (url.includes('/digital/video')) {
+        if (url.includes('/digital/video') && 200 === response.status()) {
           const url_segments = url.split('/');
           const image_name = url_segments[url_segments.length - 1];
           const film_id = url_segments[url_segments.length - 2];
@@ -178,7 +178,7 @@ class Avmoo {
     const sample_images = [];
     await page.on('response', async (response) => {
       const url = response.url();
-      if (url.includes('/digital/video') && url.includes('-')) {
+      if (url.includes('/digital/video') && url.includes('-') && 200 == response.status()) {
         const url_segments = url.split('/');
         const image_name = url_segments[url_segments.length - 1];
         const image_buf = await response.buffer();
